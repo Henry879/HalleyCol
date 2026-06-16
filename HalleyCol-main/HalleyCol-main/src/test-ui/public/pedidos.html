@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos - Vekas CRM</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="/img/logo.png" alt="Vekas">
+                </div>
+                <div class="sidebar-brand">
+                    <h1>Vekas</h1>
+                    <p>CRM System</p>
+                </div>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="sidebar-user-role">ROLE</div>
+                <div class="sidebar-user-name">Usuario</div>
+            </div>
+
+            <nav>
+                <ul class="sidebar-nav" id="sidebarNav">
+                    <!-- Se llena dinámicamente según el rol -->
+                </ul>
+            </nav>
+
+            <div class="sidebar-logout">
+                <a href="#" onclick="Vekas.auth.logout(); return false;">
+                    🚪 Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">📋 Pedidos</h1>
+                    <p class="page-subtitle">Gestión y seguimiento de órdenes</p>
+                </div>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>Todos los Pedidos</h2>
+                    <div class="table-actions">
+                        <select id="filterEstado"
+                            style="padding: 8px 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 13px;">
+                            <option value="">Todos los estados</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Pendiente Validacion">Pendiente Validación</option>
+                            <option value="Pendiente Despacho">Pendiente Despacho</option>
+                            <option value="Pagado">Pagado</option>
+                            <option value="Enviado">Enviado</option>
+                            <option value="Entregado">Entregado</option>
+                            <option value="Rechazado">Rechazado</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="pedidosContainer">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Actualizar Pedido -->
+    <div class="form-modal" id="orderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Actualizar Pedido</h2>
+                <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="orderForm">
+                    <input type="hidden" id="orderId">
+                    <div class="form-group">
+                        <label>Número de Orden</label>
+                        <input type="text" id="orderNumero" readonly style="background: var(--light);">
+                    </div>
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <input type="text" id="orderCliente" readonly style="background: var(--light);">
+                    </div>
+                    <div class="form-group">
+                        <label>Productos</label>
+                        <input type="text" id="orderProductos" readonly style="background: var(--light);">
+                    </div>
+                    <div class="form-group">
+                        <label>Total</label>
+                        <input type="text" id="orderTotal" readonly style="background: var(--light);">
+                    </div>
+                    <!-- Comprobante de pago -->
+                    <div id="comprobanteSection" class="form-group" style="display:none">
+                        <label>📎 Comprobante de Pago</label>
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--light);border-radius:8px;border:1px solid var(--border);">
+                            <a id="comprobanteLink" href="#" target="_blank">
+                                <img id="comprobanteImg" src="" alt="Comprobante"
+                                     style="width:72px;height:72px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:2px solid var(--success);">
+                            </a>
+                            <div>
+                                <p style="font-size:13px;font-weight:600;color:var(--success);">✅ Comprobante adjunto</p>
+                                <a id="comprobanteLink" href="#" target="_blank"
+                                   style="font-size:12px;color:var(--primary);">Ver en tamaño completo →</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="orderEstado">Estado</label>
+                        <select id="orderEstado" required>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Pendiente Validacion">Pendiente Validación</option>
+                            <option value="Pendiente Despacho">Pendiente Despacho</option>
+                            <option value="Pagado">Pagado</option>
+                            <option value="Enviado">Enviado</option>
+                            <option value="Entregado">Entregado</option>
+                            <option value="Rechazado">Rechazado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderGuia">Número de Guía</label>
+                        <input type="text" id="orderGuia" placeholder="Ej: GUIA123456">
+                    </div>
+                    <div class="form-group">
+                        <label for="orderLogistica">Empresa de Logística</label>
+                        <select id="orderLogistica">
+                            <option value="">Seleccionar...</option>
+                            <option value="Servientrega">Servientrega</option>
+                            <option value="Coordinadora">Coordinadora</option>
+                            <option value="Envía">Envía</option>
+                            <option value="DHL">DHL</option>
+                            <option value="FedEx">FedEx</option>
+                            <option value="Logística Propia">Logística Propia</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeOrderModal()">Cancelar</button>
+                <button class="btn-primary" onclick="saveOrder()">Actualizar Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Verificar autenticación y rol
+        if (!Vekas.auth.requireRole('admin', 'ventas', 'logistica', 'asesor')) {
+            window.location.href = '/unauthorized';
+        }
+
+        // Inicializar
+        const user = Vekas.auth.getCurrentUser();
+        Vekas.ui.initSidebar();
+
+        // Aprobar / rechazar comprobante (ventas y admin)
+        async function validarPedido(orderId, nuevoEstado) {
+            try {
+                await Vekas.api.request(`/orders/${orderId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ estado: nuevoEstado }),
+                });
+                Vekas.ui.showAlert('alertContainer',
+                    nuevoEstado === 'Pagado' ? '✅ Pedido aprobado exitosamente' : '🚫 Pedido rechazado',
+                    nuevoEstado === 'Pagado' ? 'success' : 'error'
+                );
+                loadOrders();
+            } catch (e) {
+                Vekas.ui.showAlert('alertContainer', 'Error: ' + e.message, 'error');
+            }
+        }
+
+        // Cargar pedidos
+        async function loadOrders() {
+            try {
+                const data = await Vekas.api.request('/orders');
+                renderOrdersWithFilter(data.orders);
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                Vekas.ui.showAlert('alertContainer', 'Error cargando pedidos', 'error');
+            }
+        }
+
+        function renderOrdersWithFilter(orders) {
+            const filter = document.getElementById('filterEstado').value;
+            const filtered = filter ? orders.filter(o => o.estado === filter) : orders;
+
+            if (filtered.length === 0) {
+                document.getElementById('pedidosContainer').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <h3>No hay pedidos</h3>
+                        <p>${filter ? 'No hay pedidos con este estado' : 'Los pedidos aparecerán aquí cuando se realicen compras'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const container = document.getElementById('pedidosContainer');
+            const canEdit = Vekas.auth.hasRole('admin', 'logistica');
+            const canValidate = Vekas.auth.hasRole('admin', 'ventas');
+
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Orden</th>
+                            <th>Cliente</th>
+                            <th>Ciudad</th>
+                            <th>Productos</th>
+                            <th>Total</th>
+                            <th>Comprobante</th>
+                            <th>Estado</th>
+                            <th>Guía</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtered.map(o => {
+                            const isPendingValidation = o.estado === 'Pendiente Validacion';
+                            const hasComprobante = !!o.comprobante_url;
+
+                            const comprobanteCell = hasComprobante
+                                ? `<a href="${o.comprobante_url}" target="_blank" title="Ver comprobante">
+                                     <img src="${o.comprobante_url}" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:2px solid var(--success);cursor:zoom-in;">
+                                   </a>`
+                                : `<span style="color:var(--gray);font-size:12px;">Sin comprobante</span>`;
+
+                            const validationBtns = (canValidate && isPendingValidation && hasComprobante)
+                                ? `<div style="display:flex;gap:6px;margin-top:4px;">
+                                     <button class="btn-primary" onclick="validarPedido('${o.id}','Pagado')" style="padding:4px 10px;font-size:11px;background:var(--success);">✅ Aprobar</button>
+                                     <button class="btn-secondary" onclick="validarPedido('${o.id}','Rechazado')" style="padding:4px 10px;font-size:11px;color:#ef4444;border-color:#ef4444;">🚫 Rechazar</button>
+                                   </div>`
+                                : '';
+
+                            const editBtn = canEdit
+                                ? `<button class="btn-secondary" onclick="openOrderModal('${o.id}')" style="padding:6px 12px;font-size:12px;">Editar</button>`
+                                : '';
+
+                            return `
+                            <tr>
+                                <td><strong>${o.numero_orden}</strong></td>
+                                <td>
+                                    ${o.cliente_nombre}<br>
+                                    <small style="color:var(--gray);">${o.cliente_whatsapp}</small>
+                                </td>
+                                <td>${o.ciudad || 'N/A'}<br><small>${o.direccion || ''}</small></td>
+                                <td>${o.productos}</td>
+                                <td><strong>${Vekas.ui.formatCurrency(o.total)}</strong></td>
+                                <td>${comprobanteCell}</td>
+                                <td><span class="badge ${Vekas.ui.getBadgeForStatus(o.estado)}">${o.estado}</span></td>
+                                <td>${o.guia_tracker || '<span style="color:var(--gray);">Sin guía</span>'}</td>
+                                <td>${Vekas.ui.formatRelativeTime(o.created_at)}</td>
+                                <td>${editBtn}${validationBtns}</td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Filtro por estado
+        document.getElementById('filterEstado').addEventListener('change', () => {
+            loadOrders();
+        });
+
+        // Modal functions
+        let currentOrders = [];
+
+        async function openOrderModal(orderId) {
+            try {
+                const data = await Vekas.api.request('/orders');
+                const order = data.orders.find(o => o.id === orderId);
+                if (!order) return;
+
+                currentOrders = data.orders;
+
+                document.getElementById('orderId').value = order.id;
+                document.getElementById('orderNumero').value = order.numero_orden;
+                document.getElementById('orderCliente').value = `${order.cliente_nombre} (${order.cliente_whatsapp})`;
+                document.getElementById('orderProductos').value = order.productos;
+                document.getElementById('orderTotal').value = Vekas.ui.formatCurrency(order.total);
+                document.getElementById('orderEstado').value = order.estado;
+                document.getElementById('orderGuia').value = order.guia_tracker || '';
+
+                // Extraer logística de guia_tracker si existe
+                let logistica = '';
+                if (order.guia_tracker && order.guia_tracker.includes(':')) {
+                    logistica = order.guia_tracker.split(':')[0].trim();
+                }
+                document.getElementById('orderLogistica').value = logistica;
+
+                // Mostrar comprobante en el modal si existe
+                const comprobanteSection = document.getElementById('comprobanteSection');
+                const comprobanteImg = document.getElementById('comprobanteImg');
+                const comprobanteLink = document.getElementById('comprobanteLink');
+                if (order.comprobante_url) {
+                    comprobanteImg.src = order.comprobante_url;
+                    comprobanteLink.href = order.comprobante_url;
+                    comprobanteSection.style.display = 'block';
+                } else {
+                    comprobanteSection.style.display = 'none';
+                }
+
+                document.getElementById('orderModal').classList.add('active');
+            } catch (error) {
+                Vekas.ui.showAlert('alertContainer', 'Error cargando pedido', 'error');
+            }
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').classList.remove('active');
+        }
+
+        // Guardar pedido
+        async function saveOrder() {
+            const orderId = document.getElementById('orderId').value;
+            const estado = document.getElementById('orderEstado').value;
+            const guia = document.getElementById('orderGuia').value;
+            const logistica = document.getElementById('orderLogistica').value;
+
+            const updateData = { estado };
+            if (guia) {
+                updateData.guia_tracker = logistica ? `${logistica}: ${guia}` : guia;
+            }
+
+            try {
+                await Vekas.api.request(`/orders/${orderId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(updateData),
+                });
+
+                Vekas.ui.showAlert('alertContainer', 'Pedido actualizado exitosamente', 'success');
+                closeOrderModal();
+                loadOrders();
+            } catch (error) {
+                Vekas.ui.showAlert('alertContainer', 'Error actualizando pedido: ' + error.message, 'error');
+            }
+        }
+
+        // Renderizar sidebar dinámico
+        const navItems = {
+            'admin': [
+                { href: '/dashboard', icon: '📊', label: 'Dashboard' },
+                { href: '/productos', icon: '📦', label: 'Productos' },
+                { href: '/pedidos', icon: '📋', label: 'Pedidos' },
+                { href: '/conversaciones', icon: '💬', label: 'Conversaciones' },
+                { href: '/clientes', icon: '👥', label: 'Clientes' },
+                { href: '/reportes', icon: '📈', label: 'Reportes' },
+                { href: '/usuarios', icon: '👤', label: 'Usuarios' },
+            ],
+            'ventas': [
+                { href: '/dashboard', icon: '📊', label: 'Dashboard' },
+                { href: '/productos', icon: '📦', label: 'Productos' },
+                { href: '/pedidos', icon: '📋', label: 'Pedidos' },
+                { href: '/clientes', icon: '👥', label: 'Clientes' },
+                { href: '/reportes', icon: '📈', label: 'Reportes' },
+            ],
+            'logistica': [
+                { href: '/dashboard-logistica', icon: '🚚', label: 'Mis Pedidos' },
+                { href: '/productos', icon: '📦', label: 'Productos' },
+            ],
+            'asesor': [
+                { href: '/dashboard-asesor', icon: '💬', label: 'Mis Conversaciones' },
+                { href: '/productos', icon: '📦', label: 'Productos' },
+                { href: '/pedidos', icon: '📋', label: 'Pedidos' },
+            ],
+        };
+
+        const nav = document.getElementById('sidebarNav');
+        const items = navItems[user.role] || navItems['ventas'];
+        nav.innerHTML = items.map(item => `
+            <li><a href="${item.href}" class="${window.location.pathname === item.href ? 'active' : ''}">${item.icon} ${item.label}</a></li>
+        `).join('');
+
+        loadOrders();
+    </script>
+</body>
+
+</html>
